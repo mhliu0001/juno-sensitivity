@@ -5,7 +5,9 @@ from ibd_kinematics import StrumiaVissani
 
 
 class NeutrinoFlux:
-    def __init__(self, neutrino_survival, reactor_data=None, N_p=1.44e33, eff=0.822):
+    def __init__(
+        self, neutrino_survival, sv, reactor_data=None, N_p=1.44e33, eff=0.822
+    ):
         """
         Initialize the NeutrinoFlux class.
 
@@ -13,6 +15,8 @@ class NeutrinoFlux:
         ----------
         neutrino_survival : NeutrinoSurvival
             An instance of the NeutrinoSurvival class to calculate survival probabilities.
+        sv : StrumiaVissani
+            An instance of the StrumiaVissani class to calculate IBD cross sections.
         reactor_data : dict
             A dictionary where keys are reactor names and values are lists of [power_GW, distance_km].
         N_p : float
@@ -21,10 +25,13 @@ class NeutrinoFlux:
             Detection efficiency.
         """
         self.neutrino_survival = neutrino_survival
-        if not isinstance(neutrino_survival, NeutrinoSurvival):
-            raise ValueError(
-                "neutrino_survival must be an instance of NeutrinoSurvival class."
-            )
+        # if not isinstance(neutrino_survival, NeutrinoSurvival):
+        #     raise ValueError(
+        #         "neutrino_survival must be an instance of NeutrinoSurvival class."
+        #     )
+        self.sv = sv
+        if not isinstance(sv, StrumiaVissani):
+            raise ValueError("sv must be an instance of StrumiaVissani class.")
         if reactor_data is None:
             self.reactor_data = {
                 "Taishan_core1": [4.6, 52.71],
@@ -286,19 +293,37 @@ class NeutrinoFlux:
         event_rate : float
             The expected IBD event rate in the JUNO detector (events per second).
         """
-        sv = StrumiaVissani()
+        sv = self.sv
+        if not hasattr(sv, "sigma_table"):
+            print(
+                "Warning: StrumiaVissani instance does not have precomputed sigma_table. This may slow down the calculation."
+            )
 
-        def rate(E_nu):
-            E_nu = np.atleast_1d(E_nu)
-            return (
-                flux_func(E_nu)
-                * sv.get_total_cross_section(E_nu)
-                * 1e-4
-                * self.eff
-                * self.N_p
-            )  # Convert cm^2 to m^2
+            def rate(E_nu):
+                E_nu = np.atleast_1d(E_nu)
+                return (
+                    flux_func(E_nu)
+                    * sv.get_total_cross_section(E_nu)
+                    * 1e-4
+                    * self.eff
+                    * self.N_p
+                )  # Convert cm^2 to m^2
 
-        return rate
+            return rate
+
+        else:
+
+            def rate(E_nu):
+                E_nu = np.atleast_1d(E_nu)
+                return (
+                    flux_func(E_nu)
+                    * sv.get_total_cross_section_from_table(E_nu)
+                    * 1e-4
+                    * self.eff
+                    * self.N_p
+                )  # Convert cm^2 to m^2
+
+            return rate
 
     def expected_signal_rate(self, E_nu, hierarchy="normal"):
         """

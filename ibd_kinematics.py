@@ -1,5 +1,6 @@
 import numpy as np
 import scipy
+from tqdm import tqdm
 
 
 class StrumiaVissani:
@@ -269,3 +270,50 @@ class StrumiaVissani:
                     f"Warning: High relative error in integration: {abs_error / total_sigma[i]:.2e}"
                 )
         return total_sigma
+
+    def build_total_cross_section_table(self, E_nu_grid):
+        """
+        Builds a lookup table for total cross sections over a grid of neutrino energies.
+
+        Parameters:
+        ----------
+        E_nu_grid : array-like
+            Grid of incoming neutrino energies in MeV.
+
+        Returns:
+        -------
+        sigma_table : array-like
+            Total cross section values corresponding to E_nu_grid in cm^2.
+        """
+        E_nu_grid = np.atleast_1d(E_nu_grid)
+        sigma_table = np.zeros_like(E_nu_grid)
+        for i, E_nu in enumerate(
+            tqdm(E_nu_grid, desc="Building total cross section table")
+        ):
+            sigma_table[i] = self.get_total_cross_section(E_nu)
+
+        self.sigma_table = sigma_table
+        self.E_nu_grid = E_nu_grid
+
+    def get_total_cross_section_from_table(self, E_nu):
+        """
+        Retrieves total cross section values from the precomputed table using interpolation.
+
+        Parameters:
+        ----------
+        E_nu : float or array-like
+            Incoming neutrino energy in MeV.
+
+        Returns:
+        -------
+        sigma : float or array-like
+            Total cross section in cm^2.
+        """
+        if not hasattr(self, "sigma_table"):
+            raise ValueError(
+                "Total cross section table not built. Call build_total_cross_section_table() first."
+            )
+
+        E_nu = np.atleast_1d(E_nu)
+        sigma = np.interp(E_nu, self.E_nu_grid, self.sigma_table, left=0.0, right=0.0)
+        return sigma

@@ -25,7 +25,7 @@ class NeutrinoSurvival:
         self.G_F = 1.1663787e-5  # GeV^-2
         self.Y_e = Y_e  # electron fraction in matter
         self.rho = rho  # g/cm^3, average Earth crust density
-        self.N_A = scipy.constants.Avogadro  # Avogadro's number
+        self.N_A = scipy.constants.N_A  # Avogadro's number
         self.hbar_c = (
             scipy.constants.hbar * scipy.constants.c / scipy.constants.e * 1e-7
         )  # GeV*cm
@@ -87,13 +87,10 @@ class NeutrinoSurvival:
         A_tilde_13 = (
             A / delta_m31_squared
         )  # dimensionless matter potential for 1-3 sector
-        A_tilde_12 = (
-            A * (1 - self.s_theta_13_squared) / self.delta_m21_squared
-        )  # dimensionless matter potential for 1-2 sector
 
         # Calculate effective parameters, using approximate analytical formulas
         # Full calculation would involve diagonalizing the Hamiltonian in matter
-        c_double_theta_13_m = (1 - 2 * self.s_theta_13_squared) / np.sqrt(
+        c_double_theta_13_m = (1 - 2 * self.s_theta_13_squared - A_tilde_13) / np.sqrt(
             A_tilde_13**2 - 2 * A_tilde_13 * (1 - 2 * self.s_theta_13_squared) + 1
         )
         s_theta_13_squared_m = 0.5 * (1 - c_double_theta_13_m)
@@ -101,7 +98,11 @@ class NeutrinoSurvival:
             A_tilde_13**2 - 2 * A_tilde_13 * (1 - 2 * self.s_theta_13_squared) + 1
         )
 
-        c_double_theta_12_m = (1 - 2 * self.s_theta_12_squared) / np.sqrt(
+        A_tilde_12 = (
+            A * (1 - s_theta_13_squared_m) / self.delta_m21_squared
+        )  # dimensionless matter potential for 1-2 sector
+
+        c_double_theta_12_m = (1 - 2 * self.s_theta_12_squared - A_tilde_12) / np.sqrt(
             A_tilde_12**2 - 2 * A_tilde_12 * (1 - 2 * self.s_theta_12_squared) + 1
         )
         s_theta_12_squared_m = 0.5 * (1 - c_double_theta_12_m)
