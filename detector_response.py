@@ -270,14 +270,14 @@ class JUNODetector:
     def load_response_matrix(self):
         """
         Load a response matrix from a compressed .npz file.
-
-        Parameters
-        ----------
-        filename : str
-            Path to the .npz file containing the response matrix data.
         """
         filename = f"juno_detector_response_matrix_{self.stable_hash()}.npz"
-        data = np.load(filename)
+        try:
+            data = np.load(filename)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Response matrix file {filename} not found. Please build and save it first."
+            )
         self.E_nu_grid = data["E_nu_grid"]
         self.E_rec_grid = data["E_rec_grid"]
         self.R_matrix = data["f_Erec_Enu"]

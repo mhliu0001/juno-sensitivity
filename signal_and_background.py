@@ -166,6 +166,6 @@ class JUNOSignalAndBackground:
         bin_counts_signal = np.diff(cum_at_edges)
 
         # Add precomputed background
-        bin_counts = bin_counts_signal * 1.01 + self.bin_counts_background
+        bin_counts = bin_counts_signal + self.bin_counts_background
 
         return bin_counts

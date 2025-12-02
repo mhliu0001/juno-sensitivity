@@ -197,7 +197,10 @@ class NeutrinoFlux:
                 * (
                     1
                     + np.interp(
-                        E_nu, daya_bay_non_eq_corr[:, 0], daya_bay_non_eq_corr[:, 1]
+                        E_nu,
+                        daya_bay_non_eq_corr[:, 0],
+                        daya_bay_non_eq_corr[:, 1],
+                        right=0,
                     )
                 )
                 * (
@@ -206,6 +209,7 @@ class NeutrinoFlux:
                         E_nu,
                         daya_bay_spent_fuel_corr[:, 0],
                         daya_bay_spent_fuel_corr[:, 1],
+                        right=0,
                     )
                 )
             )
